@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# goes in /etc/local.d/ (openrc), wherever startup services go for systemd
+# adjust below paths to correspond to your hardware
+
+set -e
+
+rm -f /tmp/gpu_temp
+rm -f /tmp/cpu_temp
+
+gpu_sensor_file=$(echo /sys/class/drm/card0/device/hwmon/hwmon*/temp1_input | head -n 1)
+cpu_sensor_file=$(echo /sys/devices/pci0000\:00/0000\:00\:18.3/hwmon/hwmon*/temp1_input)
+
+ln -s "$gpu_sensor_file" /tmp/gpu_temp
+ln -s "$cpu_sensor_file" /tmp/cpu_temp

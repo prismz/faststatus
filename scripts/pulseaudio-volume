@@ -1,0 +1,48 @@
+#!/bin/bash
+
+default_sink="$(pactl get-default-sink)"
+muted="$(pactl get-sink-mute "$default_sink")"
+if [[ "$muted" == *"yes"* ]]; then
+        echo "MUTE"
+        exit
+fi
+
+volstr="$(pactl get-sink-volume "$default_sink")"
+output_lines=$(echo "$volstr" | sed 's/\//\n/g')
+
+volumes=()
+
+# match lines that match "[num]%", as these are volume lines.
+for line in $output_lines; do
+        [[ $line =~ [0123456789]+% ]] && volumes+=($BASH_REMATCH)
+done
+
+n_volumes=${#volumes[@]}
+
+print_mismatched_volumes() {
+        idx=0
+        echo -n "("
+        for vol in "${volumes[@]}"; do
+                if [[ $idx -ne 0 ]]; then
+                        echo -n ","
+                fi
+                echo -n "$vol"
+                idx=$((idx+1))
+        done
+        echo ")"
+
+}
+
+# if unique-sorting the elements of the array results in only one element,
+# then theres a single volume, otherwise there are multiple
+if [ "${#volumes[@]}" -gt 0 ] && [ $(printf "%s\000" "${volumes[@]}" |
+       LC_ALL=C sort -z -u |
+       grep -z -c .) -eq 1 ] ; then
+
+
+        echo "${volumes[0]}"
+else
+        print_mismatched_volumes
+fi
+
+

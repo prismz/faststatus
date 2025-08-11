@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+
+import os
+import subprocess
+import time
+
+### CONFIG ###
+
+maxchars = 22
+update_interval = 0.3
+rewind_delay = 3   # delay before rewinding text to the start and before scrolling begins
+output_file = '/tmp/scrolling_metadata'  # output file, empty string for stdout
+
+##############
+
+last_artist = ''
+# last_album = ''
+last_title = ''
+last_combined = ''
+
+global scroll_pos
+scroll_pos = 0
+
+while True:
+    try:
+        artist = subprocess.check_output(['playerctl', '-p', 'spotify', 'metadata', 'artist']).decode().strip()
+        # album  = subprocess.check_output(['playerctl', '-p', 'spotify', 'metadata', 'album']).decode().strip()
+        title  = subprocess.check_output(['playerctl', '-p', 'spotify', 'metadata', 'title']).decode().strip()
+    except:
+        if output_file != '':
+            with open(output_file, 'w+') as f:
+                f.write('')
+
+        time.sleep(update_interval * 5)
+        continue
+
+    combined = f'{title} / {artist}'
+    scroll_max = len(combined) - maxchars
+
+    if combined == last_combined:
+        # playing same song - scroll lyrics
+
+        end = scroll_pos + maxchars
+        text_scrolled = (combined[scroll_pos:end])
+
+        if output_file != '':
+            with open(output_file, 'w+') as f:
+                f.write(text_scrolled)
+                f.write('\n')
+        else:
+            print(text_scrolled, end='\r')
+
+        if (scroll_pos == scroll_max) or scroll_pos == 0:
+            time.sleep(rewind_delay - update_interval)
+
+        if scroll_pos + 1 > scroll_max:
+            scroll_pos = 0
+        else:
+            scroll_pos += 1
+    else:
+        # song changed - reset scroll
+        scroll_pos = 0
+
+    last_artist = artist
+    # last_album = album
+    last_title = title
+    last_combined = combined
+
+    time.sleep(update_interval)

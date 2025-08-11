@@ -1,0 +1,6 @@
+faststatus
+----------
+
+A multithreaded, scriptable status program for dwm.
+Edit config.h to get started - requires playerctl to get music player info
+Edit Makefile if you do not want scripts for spotify to be installed.
