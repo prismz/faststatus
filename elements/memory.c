@@ -29,8 +29,10 @@ int meminfo_lookup(char *key, char *contents)
         return 0;
 }
 
-char *memory(void)
+char *memory(void *arg)
 {
+        (void)arg;
+
         char *buf = safe_malloc(sizeof(char) * 512);
         strncpy(buf, "NULL", 512);
 

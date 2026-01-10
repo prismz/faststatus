@@ -4,8 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *command(char *command)
+char *command(void *command_voidptr)
 {
+        char *command = (char *)command_voidptr;
+
         FILE *fp = popen(command, "r");
         if (!fp)
                 return NULL;
@@ -14,12 +16,12 @@ char *command(char *command)
         size_t idx = 0;
         char *buf = safe_calloc(size, sizeof(char));
 
-        char c;
+        int c;
         while ((c = fgetc(fp)) != EOF) {
                 if (idx + 2 >= size)
                         buf = safe_realloc(buf, sizeof(char) * (size += 512));
 
-                buf[idx++] = c;
+                buf[idx++] = (char)c;
                 buf[idx] = '\0';
         }
 

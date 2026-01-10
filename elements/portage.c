@@ -6,8 +6,10 @@
 #include <sys/types.h>
 #include <dirent.h>
 
-char *portage(void)
+char *portage(void *arg)
 {
+        (void)arg;
+
         char *buf = safe_malloc(sizeof(char) * 256);
 
         size_t c = 0;

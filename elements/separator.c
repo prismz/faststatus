@@ -1,6 +1,8 @@
 #include <string.h>
 
-char *separator(char *s)
+char *separator(void *s_voidptr)
 {
+        char *s = (char *)s_voidptr;
+
         return strdup(s);
 }

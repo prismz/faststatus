@@ -5,8 +5,10 @@
 #include <string.h>
 #include <math.h>
 
-char *uptime(void)
+char *uptime(void *arg)
 {
+        (void)arg;
+
         char *buf = safe_malloc(sizeof(char) * 512);
         strncpy(buf, "NULL", 512);
 

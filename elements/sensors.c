@@ -6,8 +6,10 @@
 #include <math.h>
 
 /* e.x. /sys/class/hwmon/hwmon1/temp1_input */
-char *temp_sensor(const char *hwmon_path)
+char *temp_sensor(void *hwmon_path_voidptr)
 {
+        const char *hwmon_path = (const char *)hwmon_path_voidptr;
+
         FILE *fp = fopen(hwmon_path, "rb");
         if (!fp)
                 return 0;
@@ -35,8 +37,10 @@ char *temp_sensor(const char *hwmon_path)
 
 }
 
-char *temp_sensor_f(const char *hwmon_path)
+char *temp_sensor_f(void *hwmon_path_voidptr)
 {
+        const char *hwmon_path = (const char *)hwmon_path_voidptr;
+
         FILE *fp = fopen(hwmon_path, "rb");
         if (!fp)
                 return 0;

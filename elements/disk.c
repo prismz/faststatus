@@ -31,7 +31,7 @@ int read_diskstat_cache_file(char *path, time_t *timestamp, int *r, int *w)
         return 0;
 }
 
-int get_current_disk_rw(char *dev, int *o_r, int *o_w)
+int get_current_disk_rw(const char *dev, int *o_r, int *o_w)
 {
 	char buf[2048];
 
@@ -71,8 +71,10 @@ int get_current_disk_rw(char *dev, int *o_r, int *o_w)
         return 0;
 }
 
-char *get_disk_rw(char *dev)
+char *get_disk_rw(void *dev_voidptr)
 {
+        const char *dev = (const char *)dev_voidptr;
+
         char *cache_path = "/tmp/.diskstat-cache";
         time_t last_checked = 0;
         int last_read = 0;

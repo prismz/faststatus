@@ -6,6 +6,8 @@
 
 char *loadavg(void *arg)
 {
+        (void)arg;
+
         double avgs[3];
         getloadavg(avgs, 3);
 

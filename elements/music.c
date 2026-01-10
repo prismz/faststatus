@@ -49,8 +49,10 @@ end:
         free(buf);
 }
 
-char *music_cmus(void)
+char *music_cmus(void *arg)
 {
+        (void)arg;
+
         char *cmus_data = command("cmus-remote -Q 2> /dev/null");
         if (cmus_data == NULL)
                 return NULL;
@@ -161,14 +163,18 @@ end:
         return buf;
 }
 
-char *music_tidal(void)
+char *music_tidal(void *arg)
 {
+        (void)arg;
+
         char *tidal_data = command("faststatus-tidal.sh");
         return tidal_data;
 }
 
-char *music_spotify(void)
+char *music_spotify(void *arg)
 {
+        (void)arg;
+
         char *spotify_data = command("faststatus-spotify.sh");
         if (spotify_data == NULL)
                 printf("no spotify\n");
