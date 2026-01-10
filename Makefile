@@ -1,6 +1,5 @@
 all:
-	cc *.c elements/*.c -lm -lX11 -g -Wall -Wextra -pedantic -o faststatus
-
+	cc *.c elements/*.c -lm -lX11 -Wno-incompatible-pointer-types -fsanitize=address -fsanitize=undefined -g -Wall -Wextra -pedantic -o faststatus
 run:all
 	./faststatus
 

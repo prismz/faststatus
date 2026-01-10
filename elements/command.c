@@ -23,14 +23,16 @@ char *command(char *command)
                 buf[idx] = '\0';
         }
 
+        long buf_len = (long)strlen(buf);
+
         int rc = pclose(fp);
-        if (rc != 0) {
+        if (rc != 0 || buf_len == 0) {
                 free(buf);
                 return NULL;
         }
 
-        if (buf[strlen(buf) - 1] == '\n')
-                buf[strlen(buf) - 1] = '\0';
+        if (buf_len - 1 >= 0 && buf[buf_len - 1] == '\n')
+                buf[buf_len - 1] = '\0';
 
         return buf;
 }

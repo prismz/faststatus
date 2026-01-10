@@ -82,7 +82,7 @@ int sleep_ms(long ms)
         struct timespec ts;
         int res;
 
-        if (ms < 0) {
+        if (ms <= 0) {
                 errno = EINVAL;
                 return 1;
         }

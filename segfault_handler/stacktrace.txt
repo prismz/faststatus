@@ -1,0 +1,7 @@
+SEGFAULT OCCURRED - BACKTRACE:
+./handler(+0x26b5) [0x55bce72766b5]
+/usr/lib64/libc.so.6(+0x41470) [0x7f5749668470]
+./handler(main+0x90) [0x55bce727695c]
+/usr/lib64/libc.so.6(+0x2b42e) [0x7f574965242e]
+/usr/lib64/libc.so.6(__libc_start_main+0x89) [0x7f57496524e9]
+./handler(_start+0x25) [0x55bce7276325]

@@ -30,7 +30,7 @@ char *portage(void)
                 DIR *d2 = opendir(p);
                 if (!d2) {
                         free(p);
-                        break;
+                        continue;
                 }
 
                 while ((e2 = readdir(d2)) != NULL) {

@@ -4,3 +4,6 @@ faststatus
 A multithreaded, scriptable status program for dwm.
 Edit config.h to get started - requires playerctl to get music player info
 Edit Makefile if you do not want scripts for spotify to be installed.
+
+easytemp.start is a script (for openrc but can be used with systemd)
+to create easy, reliable sensor files (hwmon paths can change)

@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+
+import os
+import subprocess
+import time
+
+### CONFIG ###
+
+maxchars = 22
+update_interval = 0.3
+# rewind_delay = 3   # delay before rewinding text to the start and before scrolling begins
+distance = 4 # number of empty characters to print before the beginning of the song starts again
+output_file = '/tmp/scrolling_metadata'  # output file, empty string for stdout
+
+##############
+
+def infinite_scroll(text, width):
+    """Generator that yields scrolled text indefinitely"""
+    extended = text + "    " + text + "    "
+    n = len(extended)
+
+    position = 0
+    while True:
+        start = position % n
+        end = start + width
+        segment = extended[start:end]
+
+        # Handle wrap-around by concatenating if needed
+        if end > n:
+            segment += extended[:end - n]
+
+        yield segment.ljust(width)
+        position = (position + 1) % n
+
+last_artist = ''
+# last_album = ''
+last_title = ''
+last_combined = ''
+
+current_scroller = None
+
+global scroll_pos
+scroll_pos = 0
+
+while False:
+    try:
+        artist = subprocess.check_output(['playerctl', '-p', 'spotify', 'metadata', 'artist']).decode().strip()
+        # album  = subprocess.check_output(['playerctl', '-p', 'spotify', 'metadata', 'album']).decode().strip()
+        title  = subprocess.check_output(['playerctl', '-p', 'spotify', 'metadata', 'title']).decode().strip()
+    except:
+        if output_file != '':
+            with open(output_file, 'w+') as f:
+                f.write('')
+
+        time.sleep(update_interval)
+        continue
+
+    combined = f'{title} / {artist}'
+
+    # scroll_max = len(combined) - maxchars
+
+    current_scroller = infinite_scroll(combined, maxchars)
+    # too short to scroll
+    if len(combined) < maxchars:
+        with open(output_file, 'w+') as f:
+            f.write(combined)
+            f.write('\n')
+
+
+    # playing same song - scroll lyrics
+    elif combined == last_combined:
+        first_part = combined[scroll_pos:scroll_pos+maxchars]
+        remaining = maxchars - len(first_part)
+        second_part = combined[0:remaining]
+
+        if remaining < distance:
+            for i in range(remaining):
+                second_part += ' '
+        else:
+            for i in range(distance):
+                second_part += ' '
+
+        text_scrolled = f'{first_part}{second_part}'
+
+        if output_file != '':
+            with open(output_file, 'w+') as f:
+                f.write(text_scrolled)
+                f.write('\n')
+        else:
+            print(text_scrolled, end='\r')
+
+        print(f'[{text_scrolled}]')
+
+
+        scroll_pos += 1
+    else:
+        # song changed - reset scroll
+        scroll_pos = 0
+
+    last_artist = artist
+    # last_album = album
+    last_title = title
+    last_combined = combined
+
+    if scroll_pos != 0:
+        time.sleep(update_interval)
+
+
+# Example usage
+scroller = infinite_scroll("Python Scroll", 12)
+
+for i, display in enumerate(scroller):
+    print(f"|{display}|")
+    time.sleep(0.1)

@@ -31,7 +31,7 @@ while True:
             with open(output_file, 'w+') as f:
                 f.write('')
 
-        time.sleep(update_interval * 5)
+        time.sleep(update_interval)
         continue
 
     combined = f'{title} / {artist}'
@@ -66,4 +66,5 @@ while True:
     last_title = title
     last_combined = combined
 
-    time.sleep(update_interval)
+    if scroll_pos != 0:
+        time.sleep(update_interval)

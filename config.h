@@ -2,9 +2,10 @@
 #define CONFIG_H
 
 #include "elements.h"
+#include "handler.h"
 
 typedef struct {
-        char *(*func)();
+        char *(*func)(void *);
         char *arg;
         char *fmt;
         long interval_ms;
@@ -34,6 +35,9 @@ typedef struct {
 
 /* max status length */
 #define STATUS_MAXLEN 256
+
+/* from extern in handler.h */
+//const char *dump_path = "/home/hasan/faststatus_trace.txt";
 
 static const Func funcs[] = {
 //      { music_tidal,   NULL,                                       "[%s]",            1000 },

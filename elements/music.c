@@ -170,5 +170,7 @@ char *music_tidal(void)
 char *music_spotify(void)
 {
         char *spotify_data = command("faststatus-spotify.sh");
+        if (spotify_data == NULL)
+                printf("no spotify\n");
         return spotify_data;
 }

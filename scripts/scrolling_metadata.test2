@@ -1,0 +1,123 @@
+#!/usr/bin/env python
+
+import os
+import subprocess
+import time
+from dataclasses import dataclass
+from typing import Optional
+
+### CONFIG ###
+
+maxchars = 22
+update_interval = 0.2
+#rewind_delay = 3   # delay before rewinding text to the start and before scrolling begins
+rewind_padding = 4
+output_file = '/tmp/scrolling_metadata'  # output file, empty string for stdout
+output_format = "SONG / ARTIST" # you can edit the contents of the main loop to get other info
+
+##############
+
+"""
+last_artist = ''
+# last_album = ''
+last_title = ''
+last_combined = ''
+"""
+
+class Scroller:
+    def __init__(self, text, maxwidth, padding):
+        self.text = text
+        self.maxwidth = maxwidth
+        self.padding = padding
+        self.scroll_pos = 0
+        self.scroll_max = len(text)
+        self.in_padding_phase = False
+        self.padding_count = 0
+
+    def get_display(self):
+        if len(self.text) < self.maxwidth:
+            return self.text
+        # Calculate the total display length needed (text + padding)
+        total_length = self.scroll_max + self.padding
+
+        # Handle the case where we've scrolled beyond the text
+        if self.scroll_pos >= total_length:
+            self.scroll_pos = 0
+            self.in_padding_phase = False
+
+        # Determine what to display
+        if self.scroll_pos < self.scroll_max:
+            # We're in the text phase
+            display_text = self.text[self.scroll_pos:self.scroll_pos+self.maxwidth]
+            remaining = self.maxwidth - len(display_text)
+
+            if remaining > 0:
+                # Add padding if needed
+                padding_needed = min(remaining, self.padding)
+                display_text += ' ' * padding_needed
+                remaining -= padding_needed
+
+                # Add beginning of text if there's still space
+                if remaining > 0:
+                    display_text += self.text[:remaining]
+        else:
+            # We're in the padding phase
+            padding_left = self.scroll_pos - self.scroll_max
+            padding_needed = min(self.padding - padding_left, self.maxwidth)
+            display_text = ' ' * padding_needed
+
+            # Add text from beginning if there's space
+            remaining = self.maxwidth - padding_needed
+            if remaining > 0:
+                display_text += self.text[:remaining]
+
+        # Update scroll position
+        self.scroll_pos += 1
+
+        # Return the display text with debugging info
+        return display_text
+
+    def update_text(self, new_text):
+        self.text = new_text
+        self.scroll_pos = 0
+        self.scroll_max = len(new_text)
+        self.in_padding_phase = False
+        self.padding_count = 0
+
+
+def write_to_file(data):
+    try:
+        if output_file != '':
+            with open(output_file, 'w+') as f:
+                f.write(data)
+    except:
+        print(f'error writing to file {output_file}')
+
+last_song = None
+scroller = Scroller('NONE', maxchars, rewind_padding)
+
+while True:
+    try:
+        artist = subprocess.check_output(['playerctl', '-p', 'spotify', 'metadata', 'artist']).decode().strip()
+        # album  = subprocess.check_output(['playerctl', '-p', 'spotify', 'metadata', 'album']).decode().strip()
+        title  = subprocess.check_output(['playerctl', '-p', 'spotify', 'metadata', 'title']).decode().strip()
+    except:
+        write_to_file('')
+
+        time.sleep(update_interval)
+        continue
+
+    current_song = (output_format.replace('SONG', title).replace('ARTIST', artist))
+    if last_song == current_song:
+        # playing same song - begin scroll
+        display = scroller.get_display()
+        #print(display)
+        write_to_file(display)
+    else:
+        # song changed
+        scroller.update_text(current_song)
+        write_to_file('')
+
+    last_song = current_song
+
+    time.sleep(update_interval)

@@ -48,14 +48,16 @@ char *get_layout(char *syms, int grp_num)
 	return layout;
 }
 
-char *keymap(void)
+char *keymap(void *arg)
 {
+        (void)arg;
+
         char *buf = safe_malloc(sizeof(char) * 512);
         strncpy(buf, "NULL", 512);
 
-        XkbDescRec *desc;
-        XkbStateRec state;
-        char *symbols;
+        XkbDescRec *desc = NULL;
+        XkbStateRec state = {0};
+        char *symbols = NULL;
         strncpy(buf, "NULL", 512);
 
         //if (!(dpy = XOpenDisplay(NULL)))
@@ -64,6 +66,7 @@ char *keymap(void)
         if (!(desc = XkbAllocKeyboard()))
                 goto end;
 
+        pthread_mutex_lock(&dpy_mutex);
         if (XkbGetNames(dpy, XkbSymbolsNameMask, desc))
                 goto end;
 
@@ -73,12 +76,19 @@ char *keymap(void)
 	if (!(symbols = XGetAtomName(dpy, desc->names->symbols)))
                 goto end;
 
-        strncpy(buf, get_layout(symbols, state.group),
-                        512);
+        char *layout = get_layout(symbols, state.group);
+        if (layout == NULL)
+                goto end;
+
+        strncpy(buf, layout, 512);
 
 end:
-	XFree(symbols);
-        XkbFreeKeyboard(desc, XkbSymbolsNameMask, 1);
+        pthread_mutex_unlock(&dpy_mutex);
+
+	if (symbols)
+                XFree(symbols);
+        if (desc)
+                XkbFreeKeyboard(desc, XkbSymbolsNameMask, 1);
         // XCloseDisplay(dpy);
 
         return buf;

@@ -1,5 +1,4 @@
 #include "config.h"
-#include "handler.h"
 #include "elements.h"
 
 #include <stdio.h>
@@ -32,6 +31,16 @@ static pthread_mutex_t buffer_mutexes[N];
 static char status[STATUS_MAXLEN];
 static atomic_int done = 0;
 
+static void segfault()
+{
+        void *array[10];
+        size_t n = backtrace(array, 10);
+        fprintf(stderr, "SEGFAULT OCCURRED, PRINTING BACKTRACE\n");
+        backtrace_symbols_fd(array, n, STDERR_FILENO);
+
+        exit(1);
+}
+
 static void setdwmstatus(char *str)
 {
         pthread_mutex_lock(&dpy_mutex);
@@ -58,7 +67,7 @@ void *start_func_thread(void *blockfull_voidptr)
 
                 char *func_output = NULL;
                 if (block->func.arg == NULL)
-                        func_output = block->func.func(NULL);
+                        func_output = block->func.func();
                 else
                         func_output = block->func.func(block->func.arg);
 
@@ -81,16 +90,11 @@ void *start_func_thread(void *blockfull_voidptr)
                 pthread_mutex_unlock(&buffer_mutexes[idx]);
 
                 clock_t end = clock();
-                double generation_time_ms = 0;
-                long time_to_sleep = 0;
+                double generation_time_ms = (((double)(end - start)) / CLOCKS_PER_SEC) * 1000;
+                long time_to_sleep = (block->func.interval_ms - (long)generation_time_ms);
 
-                if (end < start) {
-                       time_to_sleep = block->func.interval_ms;
-                       generation_time_ms = 0;
-                } else {
-                        generation_time_ms = (((double)(end - start)) / CLOCKS_PER_SEC) * 1000;
-                        time_to_sleep = (block->func.interval_ms - (long)generation_time_ms);
-                }
+                if (time_to_sleep < 0)
+                        time_to_sleep = 0;
 
                 sleep_ms(time_to_sleep);
         }
@@ -121,9 +125,7 @@ int main(void)
 {
         signal(SIGINT, set_done);
         signal(SIGTERM, set_done);
-
-        signal(SIGSEGV, segfault_handler);
-        setup_dump_file();
+        signal(SIGSEGV, segfault);
 
         pthread_mutex_init(&dpy_mutex, NULL);
 
@@ -152,16 +154,9 @@ int main(void)
         if (!atomic_load(&done))  /* wait for status to initialize */
                 sleep_ms(UPDATE_INTERVAL_MS);
 
-        unsigned long iter_n = 1;
         for (;;) {
                 if (atomic_load(&done))
                         break;
-
-                if (iter_n == 0) {
-                        /* cause a segfault to test handler - change val above */
-                        int *ptr = NULL;
-                        int val = *ptr;
-                }
 
                 bzero(status, STATUS_MAXLEN);
                 size_t status_curr_len = 0;
@@ -172,28 +167,28 @@ int main(void)
                                 continue;
                         }
 
-                        char buf[BUFSZ];
-                        long written = snprintf(
+                        char buf[BUFSZ] = {0};
+                        size_t tried_to_write = snprintf(
                                         buf, BUFSZ,
                                         funcs[i].fmt, thread_buffers[i]);
 
                         pthread_mutex_unlock(&buffer_mutexes[i]);
+                        if (tried_to_write >= BUFSZ)
+                                fprintf(stderr, "warning: output truncated\n");
 
-                        size_t buf_len = (written < 0) ? 0 :
-                                (size_t)MIN(written, BUFSZ - 1);
-
-                        if (status_curr_len + buf_len + 4 >= STATUS_MAXLEN) {
-                                strcat(status, "...");
+                        /* TODO: this won't produce exact truncated length... */
+                        size_t len = strlen(buf);
+                        if (status_curr_len + len > STATUS_MAXLEN - 4) {
+                                strncat(status, "...", STATUS_MAXLEN - status_curr_len - 1);
                                 break;
                         }
 
-                        strcat(status, buf);
-                        status_curr_len += buf_len;
-
+                        strncat(status, buf, STATUS_MAXLEN - status_curr_len - 1);
+                        status_curr_len += len;
                 }
 
                 setdwmstatus(status);
-                iter_n++;
+                //printf("%s\n", status);
 
                 sleep_ms(UPDATE_INTERVAL_MS);
         }
