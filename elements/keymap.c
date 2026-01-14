@@ -13,6 +13,9 @@
 
 int valid_layout_or_variant(char *sym)
 {
+        if (sym == NULL)
+                return 0;
+
 	size_t i;
 	/* invalid symbols from xkb rules config */
 	static const char *invalid[] = { "evdev", "inet", "pc", "base" };
@@ -28,12 +31,17 @@ int valid_layout_or_variant(char *sym)
 
 char *get_layout(char *syms, int grp_num)
 {
+        if (syms == NULL)
+                return NULL;
+
 	char *tok, *layout;
 	int grp;
 
+        char *strtok_ptr;
+
 	layout = NULL;
-	tok = strtok(syms, "+:");
-	for (grp = 0; tok && grp <= grp_num; tok = strtok(NULL, "+:")) {
+	tok = strtok_r(syms, "+:", &strtok_ptr);
+	for (grp = 0; tok && grp <= grp_num; tok = strtok_r(NULL, "+:", &strtok_ptr)) {
 		if (!valid_layout_or_variant(tok)) {
 			continue;
 		} else if (strlen(tok) == 1 && isdigit(tok[0])) {

@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+
+import subprocess
+import os
+
+running_merge_raw = ''
+try:
+    running_merge_raw = subprocess.check_output(['qlop', '-r']).decode().strip()
+except:
+    exit(0)
+
+if running_merge_raw == '':
+    exit(0)
+running_merge = running_merge_raw.split('>>> ')[1].replace('...', '').replace(' of ', '/')
+
+print(running_merge)

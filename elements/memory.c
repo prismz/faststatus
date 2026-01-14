@@ -8,8 +8,9 @@
 int meminfo_lookup(char *key, char *contents)
 {
         char *buf = strdup(contents);
+        char *strtok_ptr;
 
-        char *tok = strtok(buf, "\n");
+        char *tok = strtok_r(buf, "\n", &strtok_ptr);
         while (tok != NULL) {
                 if (strncmp(tok, key, strlen(key)) == 0) {
                         int val = 0;
@@ -21,7 +22,7 @@ int meminfo_lookup(char *key, char *contents)
                         return val;
                 }
 
-                tok = strtok(NULL, "\n");
+                tok = strtok_r(NULL, "\n", &strtok_ptr);
         }
 
         free(buf);

@@ -42,6 +42,7 @@ typedef struct {
 static const Func funcs[] = {
 //      { music_tidal,   NULL,                                       "[%s]",            1000 },
 //      { music_cmus,    NULL,                                       "[%s]",            1000 },
+        { command,       "/usr/local/bin/current_merge",             "[%s]",            5000 },
         { music_spotify, NULL,                                       "[%s]",            300 },
 //      { get_disk_rw,   "dm-0",                                     "[%s]",            3000 },
         { keymap,        NULL,                                       "[%s",            600 },

@@ -11,5 +11,8 @@ install:all
 	cp -f scripts/scrolling_metadata /usr/local/bin/      # must be started separately (with dwm)
 	cp -f scripts/progbar /usr/local/bin                  # progress bar for song (required by spotify plugin by default)
 
+	# for current running portage job
+	cp -f scripts/current_merge /usr/local/bin/
+
 	cp -f scripts/pulseaudio-volume /usr/local/bin/       # volume script
 	#cp elements/faststatus-tidal.sh /usr/local/bin/

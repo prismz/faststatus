@@ -60,7 +60,8 @@ char *music_cmus(void *arg)
         char *buf = safe_malloc(sizeof(char) * 1024);
         strcpy(buf, "?");
 
-        char *tok = strtok(cmus_data, "\n");
+        char *strtok_ptr;
+        char *tok = strtok_r(cmus_data, "\n", &strtok_ptr);
 
         char *status   = NULL;
         char *artist   = NULL;
@@ -100,7 +101,7 @@ char *music_cmus(void *arg)
                 if (!used)
                         free(val);
 
-                tok = strtok(NULL, "\n");
+                tok = strtok_r(NULL, "\n", &strtok_ptr);
         }
 
         free(cmus_data);

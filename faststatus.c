@@ -119,6 +119,9 @@ void set_done()
 
 int main(void)
 {
+        /* multithreading - unsure if this is needed */
+        XInitThreads();
+
         signal(SIGINT, set_done);
         signal(SIGTERM, set_done);
 
